@@ -1,13 +1,13 @@
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from adaline import AdalineGD, AdalineSGD
 from perceptron import Perceptron
 from tools import plot_decision_regions
-from adaline import AdalineGD, AdalineSGD
 
 # coding: utf-8
 author = "Oscar Ding"
-
 
 # Chapter 2 - Training Machine Learning Algorithms for Classification
 
@@ -18,7 +18,7 @@ np.arccos(v1.dot(v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
 
 # Iris data
 df = pd.read_csv('https://archive.ics.uci.edu/ml/'
-        'machine-learning-databases/iris/iris.data', header=None)
+                 'machine-learning-databases/iris/iris.data', header=None)
 df.tail()
 y = df.iloc[0:100, 4].values
 y = np.where(y == 'Iris-setosa', -1, 1)
@@ -108,11 +108,3 @@ plt.show()
 
 ada.partial_fit(X_std[0, :], y[0])
 ada.predict(X_std[0, :])
-
-
-
-
-
-
-
-
