@@ -1,0 +1,600 @@
+Chapter 1 Giving Computers the Ability to Learn from Data	
+	* The general concepts of machine learning
+	* The three types of learning and basic terminology
+		1. supervised learning
+			classification / regression
+		2. reinforcement learning
+		3. unsupervised learning / clustering
+			dimensionality reduction
+	
+	* The building blocks for successfully designing machine learning systems
+		1. Preprocessing
+			[raw data, labels] -> [training dataset], [test dataset]
+			feature extraction and scaling
+			feature selection
+			dimensionality reduction / high correlation
+			sampling
+		2. Learning
+			learning algorithm
+			model selection
+			cross-validation
+			performance metrics
+			hyperparameter optimization
+		3. Evaluation
+			final model
+			labels
+		4. Prediction
+			labels
+			new data
+
+	* Installing and settingup Python for data analysis and machine learning 
+
+---------------------------------------
+
+Chapter 2 Training Simple Machine Learning Algorithms for Classification
+	* Building an intuition for machine learning algorithms
+		artifical neuron: z = wt * x
+		initial perceptron:
+			1. initialize the weights to 0 or samll random numbers
+			2. for each training sample x(i):
+				a. compute the output value y hat
+				b. update the weights
+			convergence only guaranteed if two classes are linearly separable and the learning rate is sufficiently small 
+		Adaptive linear neurons (Adaline) batch gradient descent
+			key concept is defining and minimizing continuous cost functions 
+			which applies to logistic regression, support vector machine and regression models 
+			optimize a defined objective function: sum of squared errors 
+	* Using pandas, Numpy, and Matplotlib to read in , process, and visualize data
+		feature scaling - helps gradient descent learning converge more quickly
+			standardization 
+	* Implementing linear classification algorithms in Python 
+		stochastic gradient descent (iterative / online gradient descent)
+			training data in a random order / shuffle the training set for every epoch 
+			can use it for online learning 
+
+
+---------------------------------------
+
+Chapter 3 A Tour of Machine Learning Classifiers Using Scikit-learn 
+	* Introduction to robust and popular algorithms for classification, such as logistic regression, support vector machine, and decision trees
+	* Examples and explanations using the scikit-learn machine learning library, which provides a wide variety of machine learning algorithms via a user-friendly Python API
+	* Discussions about the strengths and weaknesses of classifiers with linear and non-linear decision boundaries
+
+	Factors for choosing algorithm models 
+		number of features or samples
+		amount of noise in a dataset 
+		whether the classes are linearly separable 
+
+	Five steps:
+		1. selecting features and collecting training samples
+		2. choosing a performance metric
+		3. choosing a classifier and optimization algorithm 
+		4. evaluating the performance of the model
+		5. tuning the algorithm 
+
+	models in scikit-learn
+	Perceptron
+		using integer labels 
+		train_test_split shuffles the training sets internally 
+			stratify = y: training and test subsets have the same proportions of class labels as the input dataset 
+		multiclass classification: One-Versus-Rest (OvR)
+		it never converges if the classes are not perfectly linearly separable 
+
+	Logistic Regression
+		linear model 
+		odds ratio: the odds in favor of a particular event p / (1 - p)
+		positive event y = 1
+		logit function: logit(p) = log[p / (1 - p)] input values 0 - 1 and output values over the entire real-number range, which we can use to express a linear relationship between feature values and the log-odds 
+		logistic sigmoid function / sigmoid function: inverse form of the logit function phi(z) = 1 / (1 + e ^ -z) z = net input
+		comes with the estimation of the class-membership probability 
+		maximize the log-likelihood function, assuming individual samples in our dataset are independent of one another 
+		equivalent to minimize the j function using an optimization algorithm such as gradient ascent
+		j function with one single-sample training instance:
+			j = -y * log(phi(z)) - (1 - y) * log(1 - phi(z))
+			j = -log(phi(z)) if y = 1
+			j = -log(1 - phi(z)) if y = 0
+		we penalize wrong predictions with an increasingly larger cost
+
+	Tackling overfitting via regularization
+		overfitting = model has a high variance
+			cause 1: having too many parameters that lead to a model that is too complex
+		Regularization
+			introduce additional information (bias) to penalize extreme parameter (weight) values
+			L2 regularization / L2 shrinkage / weight decay
+			feature scaling is required for all features
+			C = 1 / lamda
+			decreasing the value of the inverse regularization parameter C means the increasing of regularization strength
+
+			find a good bias-variance tradeoff
+			handle collinearity
+			filter out noise from data
+			prevent overfitting
+
+	Support Vector Machine SVM - an extension of the perceptron
+		optimization objective: maximize the margin instead of minimize misclassification errors
+		margin = distance between the seperating hyperplane (decision boundary) and the training samples that are closest to this hyperplane
+
+		rational: decision boundaries with large margins tend to have a lower generalization error whereas models with small margins are more prone to overfitting
+
+		slack variable -> soft-margin classification 
+
+		objective: to minimize 1/2 * abs(w)**2 + C * sum(slack)
+		larger values of C = large error penalties, whereas smaller values of C = less strict about misclassification errors
+		use C to contrtol the width of the margin and therefore tune the bias-variance trade-off 
+
+		kernal method:
+			create nonlinear combinations of the original features to project them onto a higher-dimensional space via a mapping function where it becomes linearly separable 
+			mapping approach could be computationally very expensive -> replace the dot product with kernal function 
+
+			Radial Basis Function (RBF) / Gaussian kernal:
+				kernel function = exp(-gamma * abs(xi - xj)**2), gamma = 1/(2*alphe**2)
+				kernel roughly = similarity function between a pair of samples
+				the minus sign inverts the distance measure into a similarity score 0 - 1 due to the exponential term 
+				gamma = cut-off parameter for the Gaussian sphere
+				increase gamma -> tighter and bumpier decision boundary / small gamma -> relatively soft decision boundary
+
+	Logistic Regression VS SVM
+		similar results
+		LR is more prone to outliers
+		LR is simpler and can be implemented easily
+		LR can be easily updated, good for streaming data
+		SVM can be kernelized to solve nonlinear classification problems
+
+	Decision Tree
+		good interpretability
+		split features based on the largest Information Gain (IG)
+		prone the tree by setting a limit for the maximal depth of the tree to avoid overfitting
+		objective function: maximize the information gain = difference between the impurity of the parent node and sum of the child node impurities / the lower the impurity of the child nodes, the larger information gain 
+			IG = I(Dp) - Nleft / Np * I(Dleft) - Nright/Np * I(Dright)
+		three impurity measures:
+			Gini impurity (Ig) - get min 
+				Ig(t) = 1 - sum i=1 to c(p(i|t)**2)
+			Entropy (Ih) - get max
+				Ih(t) = -sum i=1 to c(p(i|t) * log2 p(i|t) )
+			Classification error(Ie)
+				Ie = 1 - max{p(i|t)}
+		feature scaling is desired for visualization, but not required
+
+	Random Forest - an ensemble of decision trees
+		average multiple decision trees
+		four steps:
+			1. draw a random bootstrap sample of size n (randomly choose n samples from the training set with replacement)
+			2. grow a deicision tree from the bootstrap sample. at each node:
+				a. randomly select d features without replacement
+				b. split the node using the feature that provides the best split according to the objective function, for instance, maximnizing the information gain 
+			3. repeat the steps 1-2 k times
+			4. aggregate the prediction by each tree to assign the class label by majority vote
+		no worries about choosing good hyperparameter values bc ensemble model is quite robust to noise from the infividual decision trees
+		care about the number of trees k, larger k -> better performance & increased computational cost
+		sample size n of the bootstrap sample - control the bias-variance tradeoff
+			smaller n -> increase the randomness, reduce the effect of overfitting, lower performance, a small gap between training and test performance
+		usually
+			n = number of samples in the original training set
+			d = sqrt(m), where m is the number of features in the training set
+			in sklean model, n_estimator: k, n_jobs: using multiple cores of computer 
+
+
+	K-nearest neighbors - a lazy learner
+		memorizes the training dataset instead of learn a discriminative function 
+		steps:
+			1. choose the number of k and a distance metric
+			2. find the k-nearest neighbors of the sample that we want to classify
+			3. assign the class label by majority voting
+		pros: classifier immediately adapts as we collect new training data
+		cons: computational complexity grows linearly, unless dataset has very few dimensions and algorithm has been implemented using efficient data structures such as KD-trees
+		k neighbors and distance metric are crucial 
+		minkowski: p=1 -> Manhattan distance / p=2 -> Euclidean
+		prone to overfitting / curse of dimensionality
+			feature selection and dimensionality reduction techniques
+
+	Parametric vs nonparametric models 
+		parametric models:
+			we estimate parameters from the training dataset to learn a function that can classify new data points without requiring the original training database anymore
+			* perceptron
+			* logistic regression
+			* linear SVM
+
+		nonparametric models:
+			can't be characterized by a fixed set of parameters, and the numberof parameters grows with the training data
+			* decision tree / random forest
+			* kernel SVM
+			instance-based learning: KNN
+
+---------------------------------------
+
+Chapter 4 Building Good Training Sets - Data Preprocessing
+	* Removing and imputing missing values from the dataset
+		1. remove the rows / columns
+		2. imputation
+			mean / median / most_frequent / previous
+	* Getting categorical data into shape for machine learning algorithms
+		 nominal and ordinal features
+		 	mapping ordinal features to ordered integers
+		 	encoding class labels
+		 	one-hot encoding - a workaround for nominal data, available in numpy and pandas
+	* Selecting relevant features for the model construction
+		train_test_split
+		feature scaling, few exceptions: decision trees and random forests
+			1. normalization - [0 - 1], min-max scaling
+			2. standardization - normal distribution of sample mean and standard deviation 
+		
+		select meaningful features
+			overfitting: model is too complex for the given training data
+			solutions:
+				1. collect more training data
+				2. introduce a penalty for complexity via regularization 
+				3. choose a simpler model with fewer parameters
+				4. reduce the dimensionality of the data 
+			regularization:
+				L2 = sum(w **2)
+				L1 = sum(abs(w)), most feature weights will be zero -> sparsity / feature selection 
+
+			dimensionality reduction
+			feature selection 
+			sequential feature selection algorithm - greedy search algorithm
+				select a subset of features most relevant to the problem, good for algorithms that don't support regularization
+				* Sequential Backward Selection (SBS)
+					d -> k where k < d
+					criterion function j = difference in the performance of the classifier before and after the removal of a particular feature
+
+				other algorithms:
+					recursive backward elimination based on feature weights
+					tree-based methods to select features by importance
+					univariate statistical tests
+
+			random forest:
+				measure the feature importance as the averaged impurity decrease computed from all decision trees in the forest
+
+---------------------------------------
+
+Chapter 5 Compressing Data via Dimensionality Reduction
+	* Principal Component Analysis (PCA) for unsupervised data compression
+		identify patterns in data based on the correlation between features 
+		
+		aim to find the directions of maximum variance in high-dimensional data and projects it onto a new subspace with equal or fewer dimensions than the original one 
+		
+		the orthogonal axes (principal components) of the new subspace can be interpreted as the directions of maximum variance given the constraint that the new feature axes are orthogonal to each other
+		
+		d -> k
+		principal components ordered by largest possible variance desc 
+		mutually orthogonal 
+		feature standardization required
+
+		summarize the approaches:
+			1. Standardize the d-dimentional dataset
+			2. Construct the covariance matrix
+				its eigenvectors represent the principal components, corresponding eigenvalues will define their magnitude
+			3. Decompose the covariance matrix into its eigenvectors and eigenvalues
+			4. Sort the eigenvalues by decreasing order to rank the corresponding eigenvectors
+				variance explained ratios = fraction of an eigenvalue and the total sum of the eigenvalues
+			5. Select k eigenvectors which correspond to the k largest eigenvalues, where k is the dimensionality of the new subspace
+			6. Construct a projection matrix W from the "top" k eigenvectors
+			7. Transform the d-dimentional input dataset X using the projection matrix W to obtain the new k-dimensional feature subspace
+
+
+	* Linear Discriminant Analysis (LDA) as a supervised dimensionality reduction technique for maximizing class separability
+		find the feature subspace that optimizes class separability
+		assumptions: 
+			data is normally distributed
+			classes have identical covariance matrices and that the features are statistically independent of each other
+
+		steps:
+			1. Standardize the d-dimentional dataset
+			2. For each class, compute the d-dimensional dataset mean vector
+			3. Construct the between-class scatter matrix Sb and the within-class scatter matrix Sw
+			4. Compute the eigenvectors and corresponding eigenvalues of the matrix (Sw-1)dp(Sb)
+			5. Sort the eigenvalues by decreasing order to rank the corresponding eigenvectors
+			6. Choose the k eigenvectors that correspond to the k largest eigenvalues to construct a d x k -dimensional transformation matrix W; the eigenvectors are the columns of this matrix
+			7. Project the samples onto the new feature subspace using the transformation matrix W
+
+	* Nonlinear dimensionality reduction via Kernel Principal Component Analysis (KPCA)
+		transform data that is not linearly separable onto a new, lower-dimensional subspace that is suitable for linear classifier
+		kernel function: calculates a dot product between two vectors - a measure of similarity
+			* Polynomial kernel
+			* Hyperbolic kernel
+			* Radial Basis Function (RBF) or Gaussian kernel 
+				to specify the gamma parameter is a priori
+				memory based
+				for new samples, use the kernel trick to find the similarities
+		three steps to implement an RBF kernel PCA
+			1. We compute the kernel (similarity) matrix K, for each pair of samples. For example, if our dataset contains 100 training samples, the symmetric kernel matrix of the pairwise similarities would be 100 x 100-dimensional  
+			2. We center the kernel matrix K
+				guarantee the new feature space is also centered at zero
+			3. We collect the top k eigenvectors. In contrast to standard PCA, the eigenvectors are not the principal component axes, but the samples already projected onto these axes
+
+---------------------------------------
+
+Chapter 6 Learning Best Practices for Model Evaluation and Hyperparameter Tuning
+	* Obtain unbiased estimates of a model's performance
+	* Diagnose the common problems of machine learning problems
+	* Fine-tune machine learning models
+	* Evaluate predictive models using different performance metrics
+
+	Pipeline in sklearn: make_pipeline
+		an arbitrary number of scikit-learn transformers
+		followed bu a scikit-learn estimator
+
+	Cross-validation techniques
+		holdout cross-validation
+			to tune hyperparameter values
+			separate the data into three parts: a training set, a validation set, and a test set
+			cons: performance estimate may be very sensitive to how we partition the training set into the training and validatoin subsets
+
+		k-fold cross validation
+			to find the optimal hyperparameter values
+			we randomly split the training dataset into k folds without replacement, where k-1 folds are used for the model training, and one fold is used for performance evaluation. This procedure is repeated k times so that we obtain k models and performance estimates. we then calculate the average performance of the models based on the different independent folds.
+
+		stratified k-fold cross-validation
+			better bias and variance estimates in cases of unequal class proportions
+			the class proportions are preserved in each fold 
+
+	Compare learning and validation curves
+		number of training samples vs accuracy -> whether more training samples will help 
+			underfit:
+				collect additional features / decrease the degree of regularization
+			overfit:
+				collect more training data / increase the regularization parameter / decrease the number of features via feature selection of feature extraction
+				more data may not help if the training data is extremely noisy or the model is close to optimal
+
+
+	Fine-tuning machine learning models via grid search
+		two types of parameters:
+			learned from the training data: the weights in logistic regression
+			hyperparameters:
+				parameters of a learning algorithm optimized separately: regularization parameter in logistic regression or the depth parameter of a decision tree
+
+		find the optimal combination of hyperparameter values 
+		brute-force exhaustive search paradigm 
+
+	RabdinuzedSearchCV - an alternative 
+
+	Nested cross-validation
+		to select among different machine learning algorithms
+		5 x 2
+
+	Confusioni matrix
+		TP FN
+		FP TN
+
+		false positive rate (FPR) = FP / (FP + TN)
+		true positive rate (TPR) = TP / (FN + TP)
+
+		precision (PRE) = TP / (TP + FP)
+		recall (REC) = TP / (FN + TP)
+		F1 = 2 * (PRE * REC) / (PRE + REC)
+
+	Performance evaluation metrics
+		accuracy
+		precision 
+		recall
+		F1-score
+
+	Receiver Operating Characteristic (ROC)
+		ROC graphs are useful tools to select models for classification based on their performance with respect to FPR and TPR, which are computed by shifting the decision threshold of the classifer
+		diagonal of an ROC graph = random guessing
+		classification models that fall below the diagonal are considered worse than random guessing 
+		a perfect classifier would fall into the top left corner of the graph with a TPR of 1 and an FPR of 0
+		based on the ROC curve, we can then compute the ROC Area Under the Curve (ROC AUC) to characterize the performance of a classification model 
+
+	Precision-recall curves - an alternative 
+
+	Scoring metrics for multiclass classification
+		weighted macro-average
+
+	Dealing with class imbalance
+		1. assign a larger penalty to wrong predictions on the minority class
+			class_weight = 'balanced'
+		2. upsampling the minority class / downsampling the majority class
+		3. generation of synthetic training samples
+			Synthetic Minority Over-sampling Technique (SMOTE)
+
+---------------------------------------
+
+Chapter 7 Combining Different Models for Ensemble Learning 
+	* make predictions based on majority voting
+		multiclass: plurality voting
+		weighted majority voting
+		besides logistic regression, decision trees and k-nearest means can also derive the probability of classes based on frequency
+	* use bagging to reduce overfitting by drawing random combinations of the training set with repetition
+	* apply boosting to build powerful models from weak learners that learn from their mistakes
+
+---------------------------------------
+
+Chapter 10 Predicting Continuous Target Variables with Regression Analysis
+	* Exploring and visualizing datasets
+		Exploratory Data Analysis (EDA)
+			to visually detect the presence of outliers
+			the distribution of the data
+			the relationships between features
+
+		Scatterplot matrix
+			visualize the pair-wise correlations between the different features
+			use pairplot from Seaborn 
+
+	* Looking at different approaches to implement linear regression models
+		simple linear regression 
+			feature = explanatory variable
+			response = target variable
+			best-fitting line = regression line 
+			offsets / residuals = the errors of our prediction 
+		multiple linear regression 
+
+	* Training regression models that are robust to outliers
+		Correlation matrix to quantify and summarize linear relationships between variables
+			a square matrix that contains the Pearson product-moment correlation coefficient (Pearson's r)
+			which measure the linear dependence between pairs of features from -1 to 1 
+			covariance / product of their standard deviations
+			NumPy -> corrcoef
+			Seanborn -> heatmap
+
+		Fitting a robust regression model using RANSAC
+			RANdom SAample Consensus
+			fits a regression model to a subset of the data, the so-called inliers
+				1. select a random number of samples to be inliers and fit the model 
+				2. test all other data points against the fitted model and add those points that fall within a user-given tolerance to the inliers
+				3. refit the model using all inliers
+				4. estimate the error of the fitted model versus the inliers
+				5. terminate the algorithm if the performance meets a certain user-defined threshold or if a fixed number of iteration were reached; go back to step 1 otherwise 
+
+	* Evaluating regression models and diagnosing common problems
+		Ordinary Least Squares (OLS) / linear least squares
+			Adaline, whose optimization algorithm is Gradient Descent (GD) or Stochastic Gradient Descent (SGD)
+			cost function is Sum of Squared Errors, same here
+
+		Residual plots
+			we can plot the residuals versus the prediced values to diagnose our regression model 
+			detect nonlinearity and outliers
+			check whether the errors are randomly distributed 
+			residuals should be randomly scattered around the centerline
+			patterns = unable to capture some explanatory information 
+			outliers = points with large deviation from the centerline
+
+		Mean Squared Error (MSE)
+			useful to compare different regression models
+			or for tuning their parameters via grid search and cross-validation 
+			MSE in test >> train -> overfitting 
+
+		Coefficient of determination (R^2)
+			a standardized version of MSE, for better interpretability of the model's performance
+			is the fraction of response variance that is captured by the model 
+			= 1 - SSE / SST
+
+		Regularization
+			Ridge regression / Least Absolute Shrinkage and Selection Operator (LASSO) / Elastic Net
+			LASSO
+				a supervised feature selection technique
+			Elastic Net
+				which has an L1 penalty to generate sparsity and an L2 penalty to overcome some of the limitations of LASSO 
+
+	* Fitting regression models to nonlinear data 
+		Polynomial regression 
+			1. add a second degree polynomial term 
+			2. fit a simple linear regression model for comparison
+			3. fit a multiple regression model on the transformed features for polynomial regression 
+			4. plot the results 
+
+			log transformation can also be used
+
+		Random Forest 
+			sum of piecewise linear functions in contrast to the global linear and polynomial regression models
+			pros: it doesn't require any transformation of the features if we are dealing with nonlinear data
+				less sensitive to outliers
+				no much parameter tuning
+				lower variance
+			impurity metric = MSE = within-node variance -> variance reduction 
+
+			Decision Tree
+				cons: it doesn't capture the continuity and differentiability of the desired prediction / nned to be carefully choosing an appropriate value for the depth of the tree to not overfit or underfit the data
+
+		SVM
+
+		Solutions for more random residual plot
+			transform variables
+			tune the hyperparameters of the learning algorithm
+			choose a simpler or more complex model
+			remove outliers
+			include additional variables
+
+
+---------------------------------------
+
+Chapter 11 Working with Unlabeled Data - Clustering Analysis 
+	* Finding centers of similarity using the popular k-means algorithm
+		Prototype-based clustering
+			each cluster is represented by a prototype, either a centroid or a medoid for categorical features
+			pros: good at identifying clusters with a spherical shape
+			cons: have to specify the number of clusters
+				solutions: elbow / silhouette plots
+
+		Steps:
+			1. Randomly  pick k centroids from the sample points as initial cluster centers
+			2. Assign each sample to the nearest centroid
+			3. Move the centroids to the center of the samples that were assigned to it 
+			4. Repeat steps 2 and 3 until the cluster assignments do not change or a user-defined tolerance or maximum number of iterations is reached 
+
+		Similarity measurement
+			opposite of distance
+			squared Euclidean Distance
+			standardization is important
+
+		Optimization 
+			an iterative approach for minimizing the within-cluster Sum of Squared Errors (SSE) / cluster inertia
+
+		K-means++
+			place the initial centroids far away from each other 
+			Steps:
+				1. Initialize an empty set M to store the k centroids being selected 
+				2. Randomly choose the first centroid from the input samples and assign it to M
+				3. For each sample that is not in M, find the minimum squared distance to any of the centroids in M
+				4. To randomly select the next centroid, use a weighted probability distribution 
+				5. Repeat steps 2 and 3 until k centroids are chosen
+				6. Proceed with the classic k-means algorithm
+
+		Hard versus soft clustering 
+			k-means is a type of hard clustering
+			soft clustering:
+				fuzzy C-means (FCM) / soft k-means / fuzzy k-means
+				Steps:
+					1. Specify the number of k centroids and randomly assign the cluster memberships for each point
+					2. compute the cluster centroids
+					3. Update the cluster memberships for each point 
+					4. Repeat steps 2 and 3 until the membership coefficients do not change, or a user-defined tolerance or maximum number of iterations is reached
+				currently not in sklearn
+				exponent m >= 1, typically 2
+					the larger the value of m the smaller the cluster membership becomes, which leads to fuzzier clusters
+
+		Finding the optimal k 
+			Elbow method
+				distortions = km.inertia_
+			Silhouette plots
+				To calculate the silhouette coefficient of a single sample:
+					1. Calculate the cluster cohesion as the average distance between a sample and all other points in the same cluster 
+					2. Calculate the cluster separation from the next closest cluster as the average distance between the sample and all samples in the nearest cluster 
+					3. Calculate the silhouette as the difference between cluster cohesion and separation divided by the greater of the two
+				-1 to 1 
+
+	* Taking a bottom-up approach to building hierarchical clustering trees
+		pros: able to plot dendrograms
+			no need to specify the number of clusters up front 
+
+		Divisive: up to bottom
+		agglomerative: bottom-up 
+
+		Two algorithms
+			Single Linkage
+				we compute the distance between the most similar members for each pair of clusters and merge the two clusters for which the distance between the most similar members is the smallest 
+			Complete Linkage
+				we compare the most dissimilar members to perform the merge 
+			Average Linkage
+			Ward's Linkage 
+
+		Hierarchical complete linkage steps:
+			1. compute the distance matrix of all samples
+			2. represent each data point as a singleton cluster
+			3. merge the two closet clusters based on the distance between the most dissimilar members
+			4. Update the similarity matrix 
+			5. Repeat steps 2-4 until one single cluster remains 
+
+	* Identifying arbitrary shape of objects using a density-based clustering approach 
+		Density-based Spatial Clustering of Applications with Noise (DBSCAN)
+			doesn't make assumptions about spherical clusters like k-means
+			nor does it partition the dataset into hierarchies that require a manual cut-off point 
+			assign cluster labels based on dense regions of points
+
+			A special label is assigned to each sample point using the following criteria:
+				* A point is considered a core point if at least a specified number (MinPts) of neighboring points fall within the specified radius
+				* A border point is a point that has fewer neighbors than MinPts within raidus, but lies within the radius of a core point
+				* All other points that are neither core nor border points are considered noise points 
+
+			Then two steps:
+				1. Form a separate cluster for each core point or connected group of core points (core points are connected if they are no farther away than radius)
+				2. Assign each border point to the cluster of its corresponding core point 
+
+			Pros: doesn't assume that the clusters have a spherical shape
+				doesn't necessarily assign each point to a cluster but is capable of removing noise points
+			Cons: curse of dimensionality
+				two hyperparameters to optimize 
+
+	Graph-based clustering 
+		spectral clustering algorithm 
+
